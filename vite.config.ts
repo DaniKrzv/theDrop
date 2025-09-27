@@ -15,8 +15,8 @@ const stripEvalFromFileType = (): Plugin => ({
 })
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [stripEvalFromFileType(), react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [mode === 'production' ? (stripEvalFromFileType() as Plugin) : null, react()].filter(Boolean) as Plugin[],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -27,4 +27,4 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
-})
+}))

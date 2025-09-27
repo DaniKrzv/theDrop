@@ -82,7 +82,8 @@ export const AlbumCarousel3D = ({ albums, tracks, onActiveChange, onAlbumClick }
   if (!items.length) {
     return (
       <div className="mt-10 flex h-64 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 text-sm text-slate-300">
-        <p>Aucun album importé pour le moment.</p>
+        <p>Bibliothèque vide</p>
+        <p className="mt-1 text-xs text-slate-400">Importez vos fichiers .mp3 pour voir vos albums ici.</p>
       </div>
     )
   }

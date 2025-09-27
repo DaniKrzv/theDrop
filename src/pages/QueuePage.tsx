@@ -2,10 +2,11 @@ import { motion } from 'framer-motion'
 import { Trash2, Save, Shuffle, Repeat } from 'lucide-react'
 
 import { QueueList } from '@/components/queue/QueueList'
-import { queueSelectors, useMusicStore } from '@/store/useMusicStore'
+import { useMusicStore } from '@/store/useMusicStore'
+import useQueueItemsWithTrack from '@/hooks/useQueueItemsWithTrack'
 
 export const QueuePage = () => {
-  const items = useMusicStore(queueSelectors.itemsWithTrack)
+  const items = useQueueItemsWithTrack()
   const play = useMusicStore((state) => state.play)
   const clearQueue = useMusicStore((state) => state.clearQueue)
   const moveInQueue = useMusicStore((state) => state.moveInQueue)

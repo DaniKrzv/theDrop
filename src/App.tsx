@@ -1,22 +1,19 @@
-import { Suspense, lazy, useEffect } from 'react'
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 
-import { DockNav } from '@/components/DockNav'
-import { ImportBar } from '@/components/ImportBar'
-import { playerSelectors, queueSelectors, useMusicStore } from '@/store/useMusicStore'
-
-const LibraryPage = lazy(() => import('@/pages/LibraryPage'))
-const PlayerPage = lazy(() => import('@/pages/PlayerPage'))
-const QueuePage = lazy(() => import('@/pages/QueuePage'))
+import AppLayout from '@/components/AppLayout'
+import LibraryPage from '@/pages/LibraryPage'
+import PlayerPage from '@/pages/PlayerPage'
+import QueuePage from '@/pages/QueuePage'
+import { playerSelectors, useMusicStore } from '@/store/useMusicStore'
+import useQueueItemsWithTrack from '@/hooks/useQueueItemsWithTrack'
 
 const focusableElements = new Set(['input', 'textarea', 'select', 'button'])
 
 const App = () => {
   const location = useLocation()
-  const navigate = useNavigate()
-  const player = useMusicStore(playerSelectors.state)
   const currentTrack = useMusicStore(playerSelectors.currentTrack)
-  const queueItems = useMusicStore(queueSelectors.itemsWithTrack)
+  const queueItems = useQueueItemsWithTrack()
   const play = useMusicStore((state) => state.play)
   const toggle = useMusicStore((state) => state.togglePlayPause)
   const next = useMusicStore((state) => state.next)
@@ -56,32 +53,14 @@ const App = () => {
     if (location.pathname === '/queue') document.title = 'The Drop — File d\'attente'
   }, [location.pathname])
 
-  useEffect(() => {
-    if (!player.currentTrackId && queueItems.length > 0) {
-      navigate('/queue')
-    }
-  }, [navigate, player.currentTrackId, queueItems.length])
-
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-32 pt-10 sm:px-8">
-      <ImportBar />
-      <main className="mt-6 flex-1">
-        <Suspense
-          fallback={
-            <div className="mt-12 flex items-center justify-center text-sm text-slate-300">
-              Chargement de la scène…
-            </div>
-          }
-        >
-          <Routes>
-            <Route path="/" element={<LibraryPage />} />
-            <Route path="/player" element={<PlayerPage />} />
-            <Route path="/queue" element={<QueuePage />} />
-          </Routes>
-        </Suspense>
-      </main>
-      <DockNav />
-    </div>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<LibraryPage />} />
+        <Route path="/player" element={<PlayerPage />} />
+        <Route path="/queue" element={<QueuePage />} />
+      </Route>
+    </Routes>
   )
 }
 

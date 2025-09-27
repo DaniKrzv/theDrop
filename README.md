@@ -64,6 +64,6 @@ src/
 - Les URLs `URL.createObjectURL` sont invalidées lors de la suppression d&apos;une piste.
 - La persistance stocke les métadonnées (sans l&apos;objet `File`) : après rechargement, réimportez les morceaux pour récupérer la lecture.
 - Les visuels utilisent la police Inter chargée via Google Fonts.
-- Les pages principales et l&apos;analyse ID3 sont chargées dynamiquement afin de conserver des bundles < 500 kB.
+- L&apos;analyse ID3 est chargée à la demande pour conserver des bundles < 500 kB.
 
 Bon mix 🎧

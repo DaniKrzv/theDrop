@@ -3,12 +3,13 @@ import { Lock, Maximize2, Settings } from 'lucide-react'
 import { VinylTurntable } from '@/components/player/VinylTurntable'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { TrackInfo } from '@/components/player/TrackInfo'
-import { playerSelectors, queueSelectors, useMusicStore } from '@/store/useMusicStore'
+import { playerSelectors, useMusicStore } from '@/store/useMusicStore'
+import useQueueItemsWithTrack from '@/hooks/useQueueItemsWithTrack'
 
 export const PlayerPage = () => {
   const currentTrack = useMusicStore(playerSelectors.currentTrack)
   const playerState = useMusicStore(playerSelectors.state)
-  const queueItems = useMusicStore(queueSelectors.itemsWithTrack)
+  const queueItems = useQueueItemsWithTrack()
   const play = useMusicStore((state) => state.play)
   const toggle = useMusicStore((state) => state.togglePlayPause)
   const next = useMusicStore((state) => state.next)

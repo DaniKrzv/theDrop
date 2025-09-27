@@ -3,10 +3,8 @@ import { useSortable } from '@dnd-kit/sortable'
 import { GripVertical, Play, ArrowUp, ArrowDown, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-import type { QueueItem, Track } from '@/types/music'
+import type { QueueItemWithTrack } from '@/types/music'
 import { extractInitials, formatDuration, gradientFromString } from '@/utils/formatters'
-
-export type QueueItemWithTrack = QueueItem & { track: Track }
 
 export type QueueItemCardProps = {
   item: QueueItemWithTrack

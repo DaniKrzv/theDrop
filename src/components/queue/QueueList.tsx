@@ -8,7 +8,8 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
-import { QueueItemCard, type QueueItemWithTrack } from '@/components/queue/QueueItemCard'
+import { QueueItemCard } from '@/components/queue/QueueItemCard'
+import type { QueueItemWithTrack } from '@/types/music'
 
 export type QueueListProps = {
   items: QueueItemWithTrack[]

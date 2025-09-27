@@ -14,7 +14,10 @@ export const AlbumGrid = ({ albums, tracks, onPlayAlbum, onAlbumClick }: AlbumGr
   if (!albums.length) {
     return (
       <div className="grid min-h-[320px] place-items-center rounded-3xl border border-white/10 bg-white/5 text-sm text-slate-300">
-        <p>Commencez par importer vos morceaux pour remplir la bibliothèque.</p>
+        <div className="text-center">
+          <p className="text-base font-semibold text-white">Bibliothèque vide</p>
+          <p className="mt-1 text-xs text-slate-400">Importez vos fichiers .mp3 pour commencer.</p>
+        </div>
       </div>
     )
   }

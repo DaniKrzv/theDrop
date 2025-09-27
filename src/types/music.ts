@@ -35,6 +35,10 @@ export type QueueItem = {
   addedAt: number
 }
 
+export type QueueItemWithTrack = QueueItem & {
+  track: Track
+}
+
 export type ViewMode = 'carousel' | 'grid'
 export type CollectionTab = 'albums' | 'playlists'
 

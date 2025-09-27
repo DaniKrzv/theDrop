@@ -23,7 +23,9 @@ const sortAlbums = (albums: Album[], sortOrder: SortOrder, importDates: Record<s
 }
 
 export const LibraryPage = () => {
-  const albums = useMusicStore(librarySelectors.albumsArray)
+  // Avoid returning a fresh array from a selector (can trigger getSnapshot warnings)
+  const albumsObj = useMusicStore((state) => state.library.albums)
+  const albums = useMemo(() => Object.values(albumsObj), [albumsObj])
   const tracks = useMusicStore(librarySelectors.tracks)
   const viewMode = useMusicStore((state) => state.ui.viewMode)
   const sortOrder = useMusicStore((state) => state.ui.sortOrder)
@@ -61,8 +63,11 @@ export const LibraryPage = () => {
   const [activeAlbum, setActiveAlbum] = useState<Album | undefined>(filteredAlbums[0])
 
   useEffect(() => {
-    setActiveAlbum(filteredAlbums[0])
-  }, [filteredAlbums])
+    const first = filteredAlbums[0]
+    if (first?.id !== activeAlbum?.id) {
+      setActiveAlbum(first)
+    }
+  }, [filteredAlbums, activeAlbum?.id])
 
   const handlePlayAlbum = (albumId: string) => {
     const album = filteredAlbums.find((item) => item.id === albumId)

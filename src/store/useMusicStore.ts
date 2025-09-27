@@ -40,6 +40,7 @@ export type MusicStore = {
   player: PlayerState
   queue: QueueState
   ui: UIState
+  hydrated: boolean
   setViewMode: (mode: ViewMode) => void
   setSortOrder: (order: SortOrder) => void
   setFilter: (value: string) => void
@@ -85,11 +86,79 @@ const initialState: Pick<MusicStore, 'library' | 'player' | 'queue' | 'ui'> = {
   },
 }
 
+const initialHydrated = false
+
+// Safe storage wrapper: falls back to in-memory if localStorage is unavailable
+const createSafeStorage = () => {
+  let storage: Storage | null = null
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const testKey = '__thedrop_test__'
+      localStorage.setItem(testKey, '1')
+      localStorage.removeItem(testKey)
+      storage = localStorage
+    }
+  } catch {
+    storage = null
+  }
+
+  if (storage) {
+    return {
+      getItem: (name: string) => {
+        try {
+          return storage!.getItem(name)
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn('[thedrop] localStorage.getItem failed', error)
+          }
+          return null
+        }
+      },
+      setItem: (name: string, value: string) => {
+        try {
+          storage!.setItem(name, value)
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn('[thedrop] localStorage.setItem failed', error)
+          }
+        }
+      },
+      removeItem: (name: string) => {
+        try {
+          storage!.removeItem(name)
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn('[thedrop] localStorage.removeItem failed', error)
+          }
+        }
+      },
+    }
+  }
+
+  // In-memory fallback
+  const memory: Record<string, string> = {}
+  if (import.meta.env.DEV) {
+    console.warn('[thedrop] localStorage unavailable; using in-memory persistence')
+  }
+  return {
+    getItem: (name: string) => memory[name] ?? null,
+    setItem: (name: string, value: string) => {
+      memory[name] = value
+    },
+    removeItem: (name: string) => {
+      delete memory[name]
+    },
+  }
+}
+
+let setStateRef: ((partial: Partial<MusicStore>) => void) | null = null
+
 const stripFileBeforePersist = (tracks: Record<string, Track>) => {
   const result: Record<string, Track> = {}
   Object.entries(tracks).forEach(([id, track]) => {
-    const { file: _file, ...rest } = track
-    result[id] = rest as Track
+    const { file: _file, url: _url, ...rest } = track
+    // Drop blob: URLs from persistence; they are not valid across reloads
+    result[id] = { ...(rest as Track), url: '' }
   })
   return result
 }
@@ -108,8 +177,11 @@ const sortAlbumTracks = (album: Album, tracks: Record<string, Track>) => {
 
 export const useMusicStore = create<MusicStore>()(
   persist(
-    (set, get) => ({
-      ...initialState,
+    (set, get) => {
+      setStateRef = set
+      return {
+        ...initialState,
+        hydrated: initialHydrated,
       setViewMode: (mode) => set({ ui: { ...get().ui, viewMode: mode } }),
       setSortOrder: (order) => set({ ui: { ...get().ui, sortOrder: order } }),
       setFilter: (value) => set({ ui: { ...get().ui, filter: value } }),
@@ -379,10 +451,11 @@ export const useMusicStore = create<MusicStore>()(
           })
         }
       },
-    }),
+      }
+    },
     {
       name: 'thedrop-music-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => createSafeStorage() as any),
       partialize: (state) => ({
         library: {
           tracks: stripFileBeforePersist(state.library.tracks),
@@ -398,6 +471,49 @@ export const useMusicStore = create<MusicStore>()(
           rate: state.player.rate,
         },
       }),
+      onRehydrateStorage: () => (state) => {
+        // On page reload, drop previously persisted tracks/albums that have no File handle
+        // so it's obvious the user needs to re-import (blob URLs are not reusable).
+        try {
+          const current = (state as unknown as MusicStore) || get()
+
+          const persistedTracks = current.library.tracks
+          const freshTracks: Record<string, Track> = {}
+          // Only keep tracks that still have a File object in memory (none after reload)
+          // Effectively clears the library on fresh loads.
+          Object.entries(persistedTracks).forEach(([id, t]) => {
+            if ((t as any).file instanceof File) {
+              freshTracks[id] = t
+            }
+          })
+
+          const freshTrackIds = new Set(Object.keys(freshTracks))
+          const freshAlbums: Record<string, Album> = {}
+          Object.entries(current.library.albums).forEach(([key, album]) => {
+            const kept = album.tracks.filter((id) => freshTrackIds.has(id))
+            if (kept.length > 0) {
+              freshAlbums[key] = { ...album, tracks: kept }
+            }
+          })
+
+          const freshQueue = current.queue.items.filter((item) => freshTrackIds.has(item.trackId))
+
+          setStateRef?.({
+            library: { tracks: freshTracks, albums: freshAlbums },
+            queue: { items: freshQueue },
+            player: { ...current.player, currentTrackId: undefined, isPlaying: false, currentTime: 0 },
+          })
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn('[thedrop] post-rehydrate cleanup failed', error)
+          }
+        } finally {
+          if (import.meta.env.DEV) {
+            console.info('[thedrop] store rehydrated (previous imports cleared)')
+          }
+          setStateRef?.({ hydrated: true })
+        }
+      },
     },
   ),
 )
@@ -414,10 +530,7 @@ export const playerSelectors = {
 }
 
 export const queueSelectors = {
-  itemsWithTrack: (state: MusicStore) =>
-    state.queue.items
-      .map((item) => ({ ...item, track: state.library.tracks[item.trackId] }))
-      .filter((item) => Boolean(item.track)),
+  items: (state: MusicStore) => state.queue.items,
 }
 
 export const resetMusicStore = () => {

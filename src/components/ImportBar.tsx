@@ -3,6 +3,7 @@ import { Upload, FolderDown } from 'lucide-react'
 
 import { useMusicStore } from '@/store/useMusicStore'
 import { parseTrackFile } from '@/utils/metadata'
+import type { Track } from '@/types/music'
 
 const ACCEPTED_TYPES = ['audio/mpeg', 'audio/mp3']
 
@@ -23,17 +24,48 @@ export const ImportBar = () => {
       setIsImporting(true)
       setProgress(0)
 
-      const parsed = [] as Awaited<ReturnType<typeof parseTrackFile>>[]
-
-      for (let index = 0; index < collection.length; index += 1) {
-        const file = collection[index]
-        // eslint-disable-next-line no-await-in-loop
-        const track = await parseTrackFile(file)
-        parsed.push(track)
-        setProgress(Math.round(((index + 1) / collection.length) * 100))
+      // Group by top-level folder when available, otherwise by filename (sans extension)
+      const groups = new Map<string, File[]>()
+      for (const file of collection) {
+        const rel = (file as any).webkitRelativePath as string | undefined
+        const groupKey = rel && rel.includes('/') ? rel.split('/')[0] : file.name.replace(/\.mp3$/i, '')
+        const arr = groups.get(groupKey) ?? []
+        arr.push(file)
+        groups.set(groupKey, arr)
       }
 
-      addTracks(parsed)
+      const allParsed: Omit<Track, 'id'>[] = []
+      let processed = 0
+
+      for (const [albumTitle, filesInGroup] of groups) {
+        // Parse sequentially to keep progress meaningful
+        const parsedGroup: Omit<Track, 'id'>[] = []
+        for (const file of filesInGroup) {
+          // eslint-disable-next-line no-await-in-loop
+          const track = await parseTrackFile(file)
+          parsedGroup.push(track)
+          processed += 1
+          setProgress(Math.round((processed / collection.length) * 100))
+        }
+
+        // Determine album artist and cover from the first parsed track with data
+        const firstWithMeta = parsedGroup.find((t) => Boolean(t.artist) || Boolean(t.coverDataUrl)) ?? parsedGroup[0]
+        const albumArtist = (firstWithMeta?.artist?.trim() || 'Artiste inconnu') as string
+        const albumCover = firstWithMeta?.coverDataUrl
+
+        // Override album title for every track in the group to ensure grouping;
+        // also normalize artist to keep a single album key (artist + album)
+        for (const t of parsedGroup) {
+          allParsed.push({
+            ...t,
+            album: albumTitle,
+            artist: albumArtist,
+            coverDataUrl: t.coverDataUrl ?? albumCover,
+          })
+        }
+      }
+
+      addTracks(allParsed)
       setTimeout(() => {
         setProgress(0)
         setIsImporting(false)
@@ -117,6 +149,8 @@ export const ImportBar = () => {
           multiple
           onChange={onFileChange}
           className="hidden"
+          // @ts-expect-error non-standard, supported by Chromium-based browsers
+          webkitdirectory=""
         />
       </div>
     </section>

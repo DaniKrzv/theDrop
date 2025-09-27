@@ -21,8 +21,14 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio()
-      audioRef.current.preload = 'metadata'
+      try {
+        audioRef.current = new Audio()
+        audioRef.current.preload = 'metadata'
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[thedrop] Unable to initialize HTMLAudioElement', error)
+        }
+      }
     }
   }, [])
 
@@ -62,7 +68,7 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
     const audio = audioRef.current
     if (!audio) return
 
-    if (!currentTrack) {
+    if (!currentTrack || !currentTrack.url) {
       audio.pause()
       audio.removeAttribute('src')
       return
