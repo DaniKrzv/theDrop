@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { LibraryHeader } from '@/components/library/LibraryHeader'
 import { AlbumCarousel3D } from '@/components/library/AlbumCarousel3D'
 import { AlbumGrid } from '@/components/library/AlbumGrid'
-import { AlbumMiniInfoBar } from '@/components/library/AlbumMiniInfoBar'
 import { librarySelectors, useMusicStore } from '@/store/useMusicStore'
 import type { Album, SortOrder } from '@/types/music'
 
@@ -35,7 +34,6 @@ export const LibraryPage = () => {
   const setSortOrder = useMusicStore((state) => state.setSortOrder)
   const setFilter = useMusicStore((state) => state.setFilter)
   const setCollectionTab = useMusicStore((state) => state.setCollectionTab)
-  const enqueueAlbum = useMusicStore((state) => state.enqueueAlbum)
   const play = useMusicStore((state) => state.play)
   const player = useMusicStore((state) => state.player)
   const setRate = useMusicStore((state) => state.setRate)
@@ -84,19 +82,21 @@ export const LibraryPage = () => {
   const playbackRate = player.rate
 
   return (
-    <div className="flex flex-col gap-6">
-      <LibraryHeader
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        collectionTab={collectionTab}
-        onCollectionTabChange={setCollectionTab}
-        sortOrder={sortOrder}
-        onSortChange={setSortOrder}
-        filter={filter}
-        onFilterChange={setFilter}
-        playbackRate={playbackRate}
-        onRateChange={setRate}
-      />
+    <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10">
+      <div className="w-full">
+        <LibraryHeader
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          collectionTab={collectionTab}
+          onCollectionTabChange={setCollectionTab}
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+          filter={filter}
+          onFilterChange={setFilter}
+          playbackRate={playbackRate}
+          onRateChange={setRate}
+        />
+      </div>
 
       {collectionTab === 'playlists' ? (
         <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 text-center text-slate-300">
@@ -107,18 +107,11 @@ export const LibraryPage = () => {
           </p>
         </div>
       ) : viewMode === 'carousel' ? (
-        <div className="relative">
+        <div className="relative flex w-full items-center justify-center">
           <AlbumCarousel3D
             albums={filteredAlbums}
-            tracks={tracks}
             onActiveChange={handleActiveChange}
             onAlbumClick={(album) => handlePlayAlbum(album.id)}
-          />
-          <AlbumMiniInfoBar
-            album={activeAlbum}
-            tracks={tracks}
-            onPlayAlbum={handlePlayAlbum}
-            onEnqueueAlbum={enqueueAlbum}
           />
         </div>
       ) : (

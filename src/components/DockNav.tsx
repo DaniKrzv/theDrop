@@ -18,6 +18,7 @@ export const DockNav = () => {
           key={to}
           to={to}
           end={to === '/'}
+          data-dock-button={to === '/' ? 'home' : to.slice(1)}
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 rounded-2xl px-4 py-2 text-xs font-medium transition-colors ${isActive ? 'text-white shadow-glow' : 'text-slate-300 hover:text-white'}`
           }

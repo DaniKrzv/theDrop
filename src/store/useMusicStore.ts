@@ -475,7 +475,7 @@ export const useMusicStore = create<MusicStore>()(
         // On page reload, drop previously persisted tracks/albums that have no File handle
         // so it's obvious the user needs to re-import (blob URLs are not reusable).
         try {
-          const current = (state as unknown as MusicStore) || get()
+          const current = (state as unknown as MusicStore) || useMusicStore.getState()
 
           const persistedTracks = current.library.tracks
           const freshTracks: Record<string, Track> = {}
