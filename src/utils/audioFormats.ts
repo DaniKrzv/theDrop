@@ -61,6 +61,12 @@ export const isSupportedAudioFile = (file: File) => {
   return SUPPORTED_AUDIO_EXTENSIONS.has(extension)
 }
 
+export const isMp3OrWavFile = (file: File) => {
+  if (!isSupportedAudioFile(file)) return false
+  const format = detectAudioFormat(file)
+  return format === 'mp3' || format === 'wav'
+}
+
 export const stripAudioExtension = (fileName: string, format: AudioFormat) => {
   const lowered = fileName.toLowerCase()
   const suffixes = EXTENSIONS[format]
@@ -78,4 +84,3 @@ export const audioFormatToMoveDiscriminant: Record<AudioFormat, number> = {
   flac: 2,
   aiff: 3,
 }
-

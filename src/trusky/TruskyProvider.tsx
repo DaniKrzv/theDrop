@@ -5,6 +5,8 @@ import { Tusky } from '@tusky-io/ts-sdk/web'
 import type { SignPersonalMessage } from '@tusky-io/ts-sdk/web'
 import { useCurrentAccount, useSignPersonalMessage } from '@mysten/dapp-kit'
 
+import { withNetworkRetry, isTuskyLockedError, tuskyLockedMessage } from '@/utils/networkRetry'
+
 const resolveTuskyEnv = () => {
   const raw = import.meta.env.VITE_TRUSKY_ENV?.toString().toLowerCase()
   if (!raw) return undefined
@@ -120,7 +122,7 @@ export const TruskyProvider = ({ children }: PropsWithChildren) => {
         },
       })
 
-      await tuskyClient.auth.signIn()
+      await withNetworkRetry('initialiser la session Tusky', () => tuskyClient.auth.signIn())
 
       setTusky(tuskyClient)
       setConnectedAddress(walletAccount.address)
@@ -128,7 +130,11 @@ export const TruskyProvider = ({ children }: PropsWithChildren) => {
 
       return tuskyClient
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to connect to Trusky'
+      const message = isTuskyLockedError(err)
+        ? tuskyLockedMessage('initialiser la session Tusky')
+        : err instanceof Error
+          ? err.message
+          : 'Failed to connect to Trusky'
       setTusky(null)
       setConnectedAddress(null)
       setError(message)
@@ -161,4 +167,3 @@ export const TruskyProvider = ({ children }: PropsWithChildren) => {
 }
 
 export const useTrusky = () => useContext(TruskyContext)
-

@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react'
 import { ImportBar } from '@/components/ImportBar'
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton'
 import { TruskyConnectButton } from '@/components/wallet/TruskyConnectButton'
+import { AlbumUploadPanel } from '@/components/trusky/AlbumUploadPanel'
 
 const ExplorePage = () => {
   return (
@@ -42,6 +43,14 @@ const ExplorePage = () => {
         aria-label="Zone d\'upload de musique"
       >
         <ImportBar />
+      </motion.section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        aria-label="Upload Walrus"
+      >
+        <AlbumUploadPanel />
       </motion.section>
     </div>
   )
