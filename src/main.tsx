@@ -7,33 +7,29 @@ import App from '@/App'
 import '@/index.css'
 import { Buffer } from 'buffer'
 import '@mysten/dapp-kit/dist/index.css'
-import { createNetworkConfig, SuiClientProvider, WalletProvider } from '@mysten/dapp-kit'
-import { getFullnodeUrl } from '@mysten/sui/client'
+import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { networkConfig } from '@/networkConfig'
+import { TruskyProvider } from '@/trusky/TruskyProvider'
 
 // Ensure Buffer exists in the browser for libraries expecting the Node global
 if (!(globalThis as any).Buffer) {
   ;(globalThis as any).Buffer = Buffer
 }
 
-// Configure Sui networks
-const { networkConfig } = createNetworkConfig({
-  devnet: { url: getFullnodeUrl('devnet') },
-  testnet: { url: getFullnodeUrl('testnet') },
-  mainnet: { url: getFullnodeUrl('mainnet') },
-})
-
 const queryClient = new QueryClient()
 
 const AppTree = (
   <QueryClientProvider client={queryClient}>
     <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-      <WalletProvider>
-        <BrowserRouter>
-          <AudioProvider>
-            <App />
-          </AudioProvider>
-        </BrowserRouter>
+      <WalletProvider autoConnect>
+        <TruskyProvider>
+          <BrowserRouter>
+            <AudioProvider>
+              <App />
+            </AudioProvider>
+          </BrowserRouter>
+        </TruskyProvider>
       </WalletProvider>
     </SuiClientProvider>
   </QueryClientProvider>

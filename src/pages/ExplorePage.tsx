@@ -1,7 +1,8 @@
-import { ConnectButton } from '@mysten/dapp-kit'
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { ImportBar } from '@/components/ImportBar'
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton'
+import { TruskyConnectButton } from '@/components/wallet/TruskyConnectButton'
 
 const ExplorePage = () => {
   return (
@@ -15,7 +16,10 @@ const ExplorePage = () => {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Explorer</p>
           <h1 className="text-3xl font-semibold text-white">Découvrir de la musique</h1>
         </div>
-        <ConnectButton className="rounded-full" />
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <ConnectWalletButton className="rounded-full" />
+          <TruskyConnectButton />
+        </div>
       </motion.div>
 
       <motion.section
