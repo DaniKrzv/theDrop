@@ -107,7 +107,7 @@ export const AlbumCarousel3D = ({ albums, onActiveChange, onAlbumClick }: AlbumC
       <div
         ref={stageRef}
         className="absolute left-1/2 top-0 h-[320px] w-full max-w-6xl md:h-[380px]"
-        style={{ perspective: `${perspective}px`, transform: 'translateX(calc(-50% + 120px))' }}
+        style={{ perspective: `${perspective}px`, transform: 'translateX(-50%)' }}
       >
         {items.map((album, index) => {
           const rel = index - activeIndex
@@ -149,7 +149,7 @@ export const AlbumCarousel3D = ({ albums, onActiveChange, onAlbumClick }: AlbumC
         })}
       </div>
       {current && (
-        <div className="mt-12 text-center" style={{ transform: 'translateX(120px)' }}>
+        <div className="mt-12 text-center">
           <div className="text-xl font-semibold text-white leading-tight">{current.title}</div>
           <div className="text-sm text-slate-300">{current.artist}</div>
         </div>
