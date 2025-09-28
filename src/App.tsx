@@ -4,7 +4,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import LibraryPage from '@/pages/LibraryPage'
 import PlayerPage from '@/pages/PlayerPage'
-import QueuePage from '@/pages/QueuePage'
+import ExplorePage from '@/pages/ExplorePage'
 import { playerSelectors, useMusicStore } from '@/store/useMusicStore'
 import useQueueItemsWithTrack from '@/hooks/useQueueItemsWithTrack'
 
@@ -50,7 +50,7 @@ const App = () => {
   useEffect(() => {
     if (location.pathname === '/') document.title = 'The Drop — Bibliothèque'
     if (location.pathname === '/player') document.title = 'The Drop — Lecteur vinyle'
-    if (location.pathname === '/queue') document.title = 'The Drop — File d\'attente'
+    if (location.pathname === '/explore') document.title = 'The Drop — Explorer'
   }, [location.pathname])
 
   return (
@@ -58,7 +58,7 @@ const App = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<LibraryPage />} />
         <Route path="/player" element={<PlayerPage />} />
-        <Route path="/queue" element={<QueuePage />} />
+        <Route path="/explore" element={<ExplorePage />} />
       </Route>
     </Routes>
   )

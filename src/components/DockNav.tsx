@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { PanelsTopLeft, Disc3, ListMusic } from 'lucide-react'
+import { PanelsTopLeft, Disc3, Compass } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Bibliothèque', icon: PanelsTopLeft },
   { to: '/player', label: 'Lecteur', icon: Disc3 },
-  { to: '/queue', label: 'File', icon: ListMusic },
+  { to: '/explore', label: 'Explorer', icon: Compass },
 ]
 
 export const DockNav = () => {

@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { DockNav } from '@/components/DockNav'
-import { ImportBar } from '@/components/ImportBar'
 import ErrorBoundary from '@/components/ErrorBoundary'
 
 export const AppLayout = () => {
@@ -19,7 +18,6 @@ export const AppLayout = () => {
 
   return (
     <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-32 pt-10 sm:px-8">
-      <ImportBar />
       <main className="mt-6 flex-1">
         <ErrorBoundary>
           <Outlet />

@@ -35,8 +35,7 @@ export const LibraryPage = () => {
   const setFilter = useMusicStore((state) => state.setFilter)
   const setCollectionTab = useMusicStore((state) => state.setCollectionTab)
   const play = useMusicStore((state) => state.play)
-  const player = useMusicStore((state) => state.player)
-  const setRate = useMusicStore((state) => state.setRate)
+  
 
   const derivedByAlbum = useMemo(() => {
     const imports: Record<string, number> = {}
@@ -79,8 +78,6 @@ export const LibraryPage = () => {
     setActiveAlbum(album)
   }
 
-  const playbackRate = player.rate
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10">
       <div className="w-full">
@@ -93,8 +90,6 @@ export const LibraryPage = () => {
           onSortChange={setSortOrder}
           filter={filter}
           onFilterChange={setFilter}
-          playbackRate={playbackRate}
-          onRateChange={setRate}
         />
       </div>
 
