@@ -5,6 +5,9 @@ import { AlbumCarousel3D } from '@/components/library/AlbumCarousel3D'
 import { AlbumGrid } from '@/components/library/AlbumGrid'
 import { librarySelectors, useMusicStore } from '@/store/useMusicStore'
 import type { Album, SortOrder } from '@/types/music'
+import { CloudDownload, Loader2 } from 'lucide-react'
+import { useTuskyLibrary } from '@/trusky/useTuskyLibrary'
+import { useTrusky } from '@/trusky/TruskyProvider'
 
 const sortAlbums = (albums: Album[], sortOrder: SortOrder, importDates: Record<string, number>) => {
   const copy = [...albums]
@@ -35,7 +38,12 @@ export const LibraryPage = () => {
   const setFilter = useMusicStore((state) => state.setFilter)
   const setCollectionTab = useMusicStore((state) => state.setCollectionTab)
   const play = useMusicStore((state) => state.play)
-  
+  const addTracks = useMusicStore((state) => state.addTracks)
+  const { isConnected, isConnecting } = useTrusky()
+  const { listAlbums, fetchAlbumTracks } = useTuskyLibrary()
+  const [remoteAlbums, setRemoteAlbums] = useState<{ vaultId: string; albumFolderId: string; title: string; trackCount: number }[]>([])
+  const [syncingVault, setSyncingVault] = useState<string | null>(null)
+  const [downloadProgress, setDownloadProgress] = useState<{ [vaultId: string]: { current: number; total: number } }>({})
 
   const derivedByAlbum = useMemo(() => {
     const imports: Record<string, number> = {}
@@ -66,6 +74,48 @@ export const LibraryPage = () => {
     }
   }, [filteredAlbums, activeAlbum?.id])
 
+  // Load Tusky albums on mount if connected
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      if (!isConnected) return
+      try {
+        const items = await listAlbums()
+        if (!cancelled) {
+          setRemoteAlbums(items)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    void run()
+    return () => {
+      cancelled = true
+    }
+  }, [isConnected, listAlbums])
+
+  const importFromTusky = async (vaultId: string, albumFolderId?: string) => {
+    if (syncingVault) return
+    setSyncingVault(vaultId)
+    setDownloadProgress(prev => ({ ...prev, [vaultId]: { current: 0, total: 0 } }))
+    
+    try {
+      const parsedTracks = await fetchAlbumTracks(vaultId, albumFolderId)
+      addTracks(parsedTracks)
+      
+      // Clear progress after successful import
+      setDownloadProgress(prev => {
+        const newProgress = { ...prev }
+        delete newProgress[vaultId]
+        return newProgress
+      })
+    } catch (error) {
+      console.error('Failed to import album from Tusky:', error)
+    } finally {
+      setSyncingVault(null)
+    }
+  }
+
   const handlePlayAlbum = (albumId: string) => {
     const album = filteredAlbums.find((item) => item.id === albumId)
     if (!album) return
@@ -76,6 +126,12 @@ export const LibraryPage = () => {
 
   const handleActiveChange = (album: Album) => {
     setActiveAlbum(album)
+  }
+
+  const getProgressPercentage = (vaultId: string) => {
+    const progress = downloadProgress[vaultId]
+    if (!progress || progress.total === 0) return 0
+    return Math.round((progress.current / progress.total) * 100)
   }
 
   return (
@@ -91,6 +147,56 @@ export const LibraryPage = () => {
           filter={filter}
           onFilterChange={setFilter}
         />
+      </div>
+
+      <div className="w-full rounded-3xl border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-300">Tusky</p>
+            {isConnected ? (
+              <p className="text-xs text-slate-400">{remoteAlbums.length} album{remoteAlbums.length !== 1 ? 's' : ''} détecté(s)</p>
+            ) : (
+              <p className="text-xs text-slate-400">{isConnecting ? 'Connexion à Tusky…' : 'Connectez-vous à Tusky pour synchroniser votre bibliothèque'}</p>
+            )}
+          </div>
+        </div>
+        {isConnected && remoteAlbums.length > 0 && (
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {remoteAlbums.map((ra) => {
+              const isDownloading = syncingVault === ra.vaultId
+              const progress = getProgressPercentage(ra.vaultId)
+              
+              return (
+                <button
+                  key={ra.vaultId}
+                  onClick={() => importFromTusky(ra.vaultId, ra.albumFolderId)}
+                  disabled={Boolean(syncingVault)}
+                  className="flex items-center justify-between rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-left hover:bg-white/20 disabled:opacity-50"
+                >
+                  <div className="min-w-0 pr-3">
+                    <div className="truncate text-sm font-medium text-white">{ra.title}</div>
+                    <div className="truncate text-xs text-slate-300">
+                      {isDownloading ? `Téléchargement... ${progress}%` : `${ra.trackCount} pistes`}
+                    </div>
+                    {isDownloading && (
+                      <div className="mt-1 h-1 w-full rounded-full bg-slate-600">
+                        <div 
+                          className="h-1 rounded-full bg-accent transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {isDownloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                  ) : (
+                    <CloudDownload className="h-4 w-4 text-slate-200" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {collectionTab === 'playlists' ? (

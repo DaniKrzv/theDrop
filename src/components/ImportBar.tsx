@@ -109,22 +109,22 @@ export const ImportBar = () => {
       onDrop={onDrop}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
-      className={`relative flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 text-sm transition-all duration-300 ease-out sm:flex-row sm:items-center sm:justify-between ${isDragging ? 'border-accent/60 bg-white/10 shadow-glow' : 'shadow-soft'}`}
+      className={`relative flex flex-col gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 text-sm transition-all duration-300 ease-out ${isDragging ? 'border-accent/60 bg-white/10 shadow-glow' : 'shadow-soft'}`}
       aria-label="Importer des fichiers audio"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-center gap-4 text-center">
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-accent transition-transform ${isDragging ? 'scale-110' : ''}`}
+          className={`flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-accent transition-transform ${isDragging ? 'scale-110' : ''}`}
         >
-          <Upload className="h-6 w-6" aria-hidden />
+          <Upload className="h-8 w-8" aria-hidden />
         </div>
         <div>
-          <p className="text-base font-semibold">Importer votre bibliothèque</p>
-          <p className="text-xs text-slate-400">
+          <h2 className="text-xl font-semibold text-white">Importer votre bibliothèque</h2>
+          <p className="mt-2 text-sm text-slate-300">
             Glissez-déposez jusqu&apos;à 500 fichiers .mp3 ou sélectionnez-les manuellement.
           </p>
           {isImporting && (
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/10">
               <div
                 className="h-full rounded-full bg-accent transition-all"
                 style={{ width: `${progress}%` }}
@@ -133,11 +133,12 @@ export const ImportBar = () => {
           )}
         </div>
       </div>
-      <div className="flex gap-3">
+      
+      <div className="flex justify-center">
         <button
           type="button"
           onClick={onButtonClick}
-          className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-accent/70 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-accent/70 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
           <FolderDown className="h-4 w-4" aria-hidden />
           Importer des fichiers

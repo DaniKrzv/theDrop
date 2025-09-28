@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useRef } from 'react'
 import type { PropsWithChildren } from 'react'
 
 import { playerSelectors, useMusicStore } from '@/store/useMusicStore'
+import { useTrusky } from '@/trusky/TruskyProvider'
+import { createStreamingUrl } from '@/trusky/useTuskyLibrary'
 
 type AudioContextValue = {
   audio: HTMLAudioElement | null
@@ -74,12 +76,45 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
       return
     }
 
-    const currentSource = audio.src
-    if (currentSource !== currentTrack.url) {
-      audio.src = currentTrack.url
-      audio.currentTime = desiredTime
-      audio.load()
+    /* const currentSource = audio.src */
+    const setSrc = (url: string) => {
+      if (audio.src !== url) {
+        audio.src = url
+        audio.currentTime = desiredTime
+        audio.load()
+      }
     }
+
+    const maybeStream = async () => {
+      try {
+        const url = currentTrack.url
+        if (url.startsWith('tusky://')) {
+          const match = /^tusky:\/\/([^/]+)\/(.+)$/.exec(url)
+          if (match) {
+            const [, vaultId, fileId] = match
+            const tuskyClient = useTrusky().tusky
+            if (tuskyClient) {
+              const streamUrl = await createStreamingUrl(tuskyClient as any, vaultId, fileId)
+              setSrc(streamUrl)
+              return
+            }
+          }
+        }
+        setSrc(url)
+      } catch (error) {
+        console.warn('Streaming failed, trying local fallback:', error)
+        const f = (currentTrack as any).file as File | undefined
+        if (f) {
+          const blobUrl = URL.createObjectURL(f)
+          setSrc(blobUrl)
+          return
+        }
+        // If no local file and streaming failed, try the original URL as last resort
+        console.warn('No fallback available, using original URL')
+        setSrc(currentTrack.url)
+      }
+    }
+    void maybeStream()
 
     const play = async () => {
       try {
